@@ -1,26 +1,36 @@
 # zipvoice-rs
 
-Python `ctypes` bindings for the local `zipvoice-capi` shared library.
+Python bindings for ZipVoice GGUF inference.
 
-Build the C API first:
+The published wheels bundle the native `zipvoice-capi` dynamic library for the
+supported platforms:
 
-```bash
-cargo build --release -p zipvoice-capi
-```
+- macOS Apple Silicon
+- Linux x86_64
+- Linux aarch64
+- Windows x86_64
 
-No library path export is needed when running from this repository. The package
-searches parent directories for `target/debug` and `target/release` builds.
-
-If the shared library is somewhere else, set:
-
-```bash
-export ZIPVOICE_CAPI_LIB=/path/to/libzipvoice_capi.dylib
-```
-
-Run an example from this directory:
+## Install
 
 ```bash
-uv run python examples/basic_english.py
-uv run python examples/basic_hebrew.py
-uv run --with-editable . examples/basic_hebrew_phonemize.py
+uv pip install zipvoice-rs
 ```
+
+## Use
+
+```python
+from zipvoice_rs import ZipVoice
+
+with ZipVoice("zipvoice-en-q8_0.gguf", "vocos-mel-24khz-q8_0.gguf") as model:
+    model.generate_wav(
+        "prompt.wav",
+        "ɹˈiəl tʃˈeɪndʒ bɪɡˈɪnz wˈɛn jɔːɹ hˈoʊp bɪkˈʌmz stɹˈɔŋɡɚ ðæn jɔːɹ ɛkskjˈuːsᵻz.",
+        "ðə mˈɔːɹnɪŋ tɹˈeɪn ɚˈaɪvd bɪsˈaɪd ði ˈoʊld stˈoʊn bɹˈɪdʒ.",
+        "out.wav",
+    )
+```
+
+See `examples/` for English, Hebrew, and mixed Hebrew/English phonemization
+examples.
+
+For local development and native-library packaging notes, see `BUILDING.md`.
