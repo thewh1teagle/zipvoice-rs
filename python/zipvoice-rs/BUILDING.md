@@ -71,6 +71,23 @@ On Windows:
 $env:ZIPVOICE_CAPI_LIB = "C:\path\to\zipvoice_capi.dll"
 ```
 
+## Build Release Wheels Locally
+
+After the C API release exists, build all platform wheels from this directory:
+
+```bash
+uv run scripts/build_wheels.py --c-api-tag c-api-v0.1.0
+```
+
+The script downloads the C API release assets, bundles the matching native
+library into each wheel, and writes platform-tagged wheels to `dist/`.
+
+Publish manually with:
+
+```bash
+uv publish dist/*
+```
+
 ## Models
 
 The Python package does not bundle ZipVoice, Vocos, prompt WAVs, or phonemizers.

@@ -1,3 +1,15 @@
+"""
+Setup:
+    uv pip install zipvoice-rs
+    mkdir -p assets models/zipvoice-heb models/vocos
+    wget https://github.com/thewh1teagle/phonikud-chatterbox/releases/download/asset-files-v1/female1.wav -O assets/female1.wav
+    wget https://github.com/thewh1teagle/zipvoice-rs/releases/download/models-v0.1.0/zipvoice-heb-q8_0.gguf -O models/zipvoice-heb/zipvoice-heb-q8_0.gguf
+    wget https://github.com/thewh1teagle/zipvoice-rs/releases/download/models-v0.1.0/vocos-mel-24khz-q8_0.gguf -O models/vocos/vocos-mel-24khz-q8_0.gguf
+
+Run from the repository root:
+    python python/zipvoice-rs/examples/basic_hebrew.py
+"""
+
 from pathlib import Path
 
 from zipvoice_rs import ZipVoice

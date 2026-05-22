@@ -8,6 +8,9 @@
 # ]
 # ///
 """
+Install:
+    uv pip install zipvoice-rs
+
 Prepare assets and models:
     mkdir -p assets models/renikud models/zipvoice-heb models/vocos
     wget https://github.com/thewh1teagle/phonikud-chatterbox/releases/download/asset-files-v1/female1.wav -O assets/female1.wav

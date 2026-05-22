@@ -1,3 +1,15 @@
+"""
+Setup:
+    uv pip install zipvoice-rs
+    mkdir -p assets models/zipvoice-en models/vocos
+    wget https://github.com/thewh1teagle/zipvoice-rs/releases/download/models-v0.1.0/whisper.wav -O assets/whisper.wav
+    wget https://github.com/thewh1teagle/zipvoice-rs/releases/download/models-v0.1.0/zipvoice-en-q8_0.gguf -O models/zipvoice-en/zipvoice-en-q8_0.gguf
+    wget https://github.com/thewh1teagle/zipvoice-rs/releases/download/models-v0.1.0/vocos-mel-24khz-q8_0.gguf -O models/vocos/vocos-mel-24khz-q8_0.gguf
+
+Run from the repository root:
+    python python/zipvoice-rs/examples/basic_english.py
+"""
+
 from pathlib import Path
 
 from zipvoice_rs import ZipVoice
