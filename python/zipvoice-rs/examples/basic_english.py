@@ -7,7 +7,7 @@ Setup:
     wget https://github.com/thewh1teagle/zipvoice-rs/releases/download/models-v0.1.0/vocos-mel-24khz-q8_0.gguf -O models/vocos/vocos-mel-24khz-q8_0.gguf
 
 Run from the repository root:
-    python python/zipvoice-rs/examples/basic_english.py
+    uv run --project python/zipvoice-rs python python/zipvoice-rs/examples/basic_english.py
 """
 
 from pathlib import Path
