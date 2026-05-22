@@ -2,8 +2,7 @@
 Prepare assets and model:
     mkdir -p assets models/vocos
     wget https://github.com/thewh1teagle/phonikud-chatterbox/releases/download/asset-files-v1/female1.wav -O assets/female1.wav
-    uv run hf download charactr/vocos-mel-24khz config.yaml pytorch_model.bin --local-dir models/vocos
-    uv run python tools/convert_vocos.py
+    wget https://github.com/thewh1teagle/zipvoice-rs/releases/download/models-v0.1.0/vocos-mel-24khz-q8_0.gguf -O models/vocos/vocos-mel-24khz-q8_0.gguf
 
 Run:
     cargo run --release --example reconstruct_vocos
@@ -11,7 +10,7 @@ Run:
 
 use zipvoice_rs::{Vocos, write_wav_24khz};
 
-const MODEL: &str = "models/vocos/vocos-mel-24khz.gguf";
+const MODEL: &str = "models/vocos/vocos-mel-24khz-q8_0.gguf";
 const INPUT: &str = "assets/female1.wav";
 const OUTPUT: &str = "output/reconstructed.wav";
 

@@ -1,6 +1,6 @@
 # Building
 
-Download the PyTorch/ONNX assets and convert ZipVoice and Vocos to GGUF.
+Download ready-to-run GGUF models, or convert the original checkpoints yourself.
 
 ## Requirements
 
@@ -11,21 +11,48 @@ Download the PyTorch/ONNX assets and convert ZipVoice and Vocos to GGUF.
 The conversion commands use transient Python environments through `uvx`, so the
 project does not need a checked-in Python virtualenv.
 
-## Download Assets
+## Download Ready GGUF Models
 
 ```bash
 mkdir -p assets models/renikud models/zipvoice-heb models/vocos
 
 wget https://github.com/thewh1teagle/phonikud-chatterbox/releases/download/asset-files-v1/female1.wav \
   -O assets/female1.wav
-wget "https://huggingface.co/thewh1teagle/zipvoice-heb/resolve/main/checkpoint-36600.pt?download=true" \
-  -O models/zipvoice-heb/checkpoint-36600.pt
-wget "https://huggingface.co/k2-fsa/ZipVoice/resolve/main/zipvoice/tokens.txt?download=true" \
-  -O models/zipvoice-heb/tokens.txt
-wget "https://huggingface.co/k2-fsa/ZipVoice/resolve/main/zipvoice/model.json?download=true" \
-  -O models/zipvoice-heb/model.json
+wget https://github.com/thewh1teagle/zipvoice-rs/releases/download/models-v0.1.0/zipvoice-heb-q8_0.gguf \
+  -O models/zipvoice-heb/zipvoice-heb-q8_0.gguf
+wget https://github.com/thewh1teagle/zipvoice-rs/releases/download/models-v0.1.0/vocos-mel-24khz-q8_0.gguf \
+  -O models/vocos/vocos-mel-24khz-q8_0.gguf
 wget https://huggingface.co/thewh1teagle/renikud/resolve/main/model.onnx \
   -O models/renikud/model.onnx
+```
+
+For the English ZipVoice model:
+
+```bash
+mkdir -p models/zipvoice-en
+wget https://github.com/thewh1teagle/zipvoice-rs/releases/download/models-v0.1.0/zipvoice-en-q8_0.gguf \
+  -O models/zipvoice-en/zipvoice-en-q8_0.gguf
+```
+
+## Convert From Original Checkpoints
+
+You only need this section if you want to recreate the GGUF files.
+
+Download original assets:
+
+```bash
+mkdir -p models/zipvoice-heb models/zipvoice-en models/vocos
+
+wget "https://huggingface.co/thewh1teagle/zipvoice-heb/resolve/main/checkpoint-36600.pt?download=true" \
+  -O models/zipvoice-heb/checkpoint-36600.pt
+wget "https://huggingface.co/k2-fsa/ZipVoice/resolve/main/zipvoice/model.pt?download=true" \
+  -O models/zipvoice-en/model.pt
+wget "https://huggingface.co/k2-fsa/ZipVoice/resolve/main/zipvoice/tokens.txt?download=true" \
+  -O models/zipvoice-heb/tokens.txt
+cp models/zipvoice-heb/tokens.txt models/zipvoice-en/tokens.txt
+wget "https://huggingface.co/k2-fsa/ZipVoice/resolve/main/zipvoice/model.json?download=true" \
+  -O models/zipvoice-heb/model.json
+cp models/zipvoice-heb/model.json models/zipvoice-en/model.json
 
 uv run hf download charactr/vocos-mel-24khz config.yaml pytorch_model.bin \
   --local-dir models/vocos
@@ -74,13 +101,15 @@ as f16 because their shapes are not valid for Q8_0 blocks.
 Full precision:
 
 ```bash
-uvx --from torch --with gguf --with numpy python tools/convert_zipvoice.py
+uvx --from torch --with gguf --with numpy --with packaging --with tensorboard \
+  python tools/convert_zipvoice.py
 ```
 
 F16:
 
 ```bash
-uvx --from torch --with gguf --with numpy python tools/convert_zipvoice.py \
+uvx --from torch --with gguf --with numpy --with packaging --with tensorboard \
+  python tools/convert_zipvoice.py \
   --out-type f16 \
   --output models/zipvoice-heb/zipvoice-heb-f16.gguf
 ```
@@ -88,9 +117,22 @@ uvx --from torch --with gguf --with numpy python tools/convert_zipvoice.py \
 Q8:
 
 ```bash
-uvx --from torch --with gguf --with numpy python tools/convert_zipvoice.py \
+uvx --from torch --with gguf --with numpy --with packaging --with tensorboard \
+  python tools/convert_zipvoice.py \
   --out-type q8_0 \
   --output models/zipvoice-heb/zipvoice-heb-q8_0.gguf
+```
+
+English Q8:
+
+```bash
+uvx --from torch --with gguf --with numpy --with packaging --with tensorboard \
+  python tools/convert_zipvoice.py \
+  --checkpoint models/zipvoice-en/model.pt \
+  --model-json models/zipvoice-en/model.json \
+  --tokens models/zipvoice-en/tokens.txt \
+  --out-type q8_0 \
+  --output models/zipvoice-en/zipvoice-en-q8_0.gguf
 ```
 
 ## Run Examples
@@ -108,9 +150,7 @@ Generated WAV files are written to `output/`.
 
 ```text
 models/renikud/model.onnx
-models/vocos/vocos-mel-24khz.gguf
 models/vocos/vocos-mel-24khz-q8_0.gguf
-models/zipvoice-heb/zipvoice-heb-f32.gguf
-models/zipvoice-heb/zipvoice-heb-f16.gguf
 models/zipvoice-heb/zipvoice-heb-q8_0.gguf
+models/zipvoice-en/zipvoice-en-q8_0.gguf
 ```

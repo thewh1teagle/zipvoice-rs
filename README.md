@@ -22,6 +22,16 @@ Original models:
 
 See [BUILDING.md](BUILDING.md) for model downloads and GGUF conversion.
 
+Quick model setup:
+
+```bash
+mkdir -p assets models/renikud models/zipvoice-heb models/vocos
+wget https://github.com/thewh1teagle/phonikud-chatterbox/releases/download/asset-files-v1/female1.wav -O assets/female1.wav
+wget https://github.com/thewh1teagle/zipvoice-rs/releases/download/models-v0.1.0/zipvoice-heb-q8_0.gguf -O models/zipvoice-heb/zipvoice-heb-q8_0.gguf
+wget https://github.com/thewh1teagle/zipvoice-rs/releases/download/models-v0.1.0/vocos-mel-24khz-q8_0.gguf -O models/vocos/vocos-mel-24khz-q8_0.gguf
+wget https://huggingface.co/thewh1teagle/renikud/resolve/main/model.onnx -O models/renikud/model.onnx
+```
+
 ## Examples
 
 Hebrew text with Renikud and eSpeak NG:
