@@ -60,14 +60,14 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y glslang-tools libvulkan-dev ninja-build
+          sudo apt-get install -y glslang-tools glslc libvulkan-dev ninja-build
 
       - name: Install Windows Vulkan SDK
         if: runner.os == 'Windows'
         uses: humbletim/setup-vulkan-sdk@v1.2.1
         with:
           vulkan-query-version: latest
-          vulkan-components: Vulkan-Headers, Vulkan-Loader, Glslang
+          vulkan-components: Vulkan-Headers, Vulkan-Loader, SPIRV-Headers, SPIRV-Tools, Glslang, shaderc
           vulkan-use-cache: true
 
       - name: Build C API

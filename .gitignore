@@ -3,3 +3,5 @@ plans/
 output/
 models/
 *.wav
+python/**/.venv/
+python/**/__pycache__/
