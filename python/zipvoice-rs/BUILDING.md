@@ -13,6 +13,9 @@ uv pip install zipvoice-rs
 No Rust toolchain or `ZIPVOICE_CAPI_LIB` override should be needed for normal
 wheel users.
 
+The bundled C API should be built with the optimized native backend for each
+platform: Vulkan on Linux and Windows, and Metal plus Accelerate on macOS.
+
 ## Supported Wheel Targets
 
 - `py3-none-macosx_11_0_arm64`

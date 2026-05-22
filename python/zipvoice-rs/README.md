@@ -3,12 +3,12 @@
 Python bindings for ZipVoice GGUF inference.
 
 The published wheels bundle the native `zipvoice-capi` dynamic library for the
-supported platforms:
+supported platforms, with the native backend optimized per platform:
 
-- macOS Apple Silicon
-- Linux x86_64
-- Linux aarch64
-- Windows x86_64
+- macOS Apple Silicon: Metal + Accelerate
+- Linux x86_64: Vulkan
+- Linux aarch64: Vulkan
+- Windows x86_64: Vulkan
 
 ## Install
 
