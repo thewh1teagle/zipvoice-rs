@@ -24,45 +24,12 @@ Original models:
 
 See [BUILDING.md](BUILDING.md) for model downloads and GGUF conversion.
 
-Quick model setup:
-
-```bash
-mkdir -p assets models/renikud models/zipvoice-en models/zipvoice-heb models/vocos
-wget https://github.com/thewh1teagle/phonikud-chatterbox/releases/download/asset-files-v1/female1.wav -O assets/female1.wav
-wget https://github.com/thewh1teagle/zipvoice-rs/releases/download/models-v0.1.0/whisper.wav -O assets/whisper.wav
-wget https://github.com/thewh1teagle/zipvoice-rs/releases/download/models-v0.1.0/zipvoice-en-q8_0.gguf -O models/zipvoice-en/zipvoice-en-q8_0.gguf
-wget https://github.com/thewh1teagle/zipvoice-rs/releases/download/models-v0.1.0/zipvoice-heb-q8_0.gguf -O models/zipvoice-heb/zipvoice-heb-q8_0.gguf
-wget https://github.com/thewh1teagle/zipvoice-rs/releases/download/models-v0.1.0/vocos-mel-24khz-q8_0.gguf -O models/vocos/vocos-mel-24khz-q8_0.gguf
-wget https://huggingface.co/thewh1teagle/renikud/resolve/main/model.onnx -O models/renikud/model.onnx
-```
-
 ## Examples
 
-Hebrew text with Renikud and eSpeak NG:
-
-```bash
-cargo run --release --example basic_hebrew_text --features phonemize-hebrew
-```
-
-Hardcoded phonemes:
-
-```bash
-cargo run --release --example basic
-```
-
-English text phonemized with eSpeak NG:
-
-```bash
-cargo run --release --example basic_espeak --features phonemize-espeak
-```
-
-Vocos encode/decode reconstruction:
-
-```bash
-cargo run --release --example reconstruct_vocos
-```
-
-Generated WAV files are written to `output/`.
+- [basic.rs](examples/basic.rs): hardcoded Hebrew phonemes.
+- [basic_espeak.rs](examples/basic_espeak.rs): English text with eSpeak NG phonemization.
+- [basic_hebrew_text.rs](examples/basic_hebrew_text.rs): Hebrew text with Renikud and eSpeak NG for embedded English.
+- [reconstruct_vocos.rs](examples/reconstruct_vocos.rs): Vocos encode/decode reconstruction.
 
 ## Model Sizes
 
