@@ -101,10 +101,11 @@ jobs:
         shell: pwsh
         run: |
           $pkg = "zipvoice-capi-${{ matrix.name }}"
+          $targetDir = if ($env:CARGO_TARGET_DIR) { $env:CARGO_TARGET_DIR } else { "target" }
           New-Item -ItemType Directory -Force -Path "dist/$pkg/include", "dist/$pkg/lib" | Out-Null
           Copy-Item crates/zipvoice-capi/include/zipvoice.h "dist/$pkg/include/"
-          Copy-Item "target/${{ matrix.target }}/release/${{ matrix.lib }}" "dist/$pkg/lib/"
-          Copy-Item "target/${{ matrix.target }}/release/zipvoice_capi.dll.lib" "dist/$pkg/lib/" -ErrorAction SilentlyContinue
+          Copy-Item "$targetDir/${{ matrix.target }}/release/${{ matrix.lib }}" "dist/$pkg/lib/"
+          Copy-Item "$targetDir/${{ matrix.target }}/release/zipvoice_capi.dll.lib" "dist/$pkg/lib/" -ErrorAction SilentlyContinue
           Compress-Archive -Path "dist/$pkg" -DestinationPath "dist/$pkg.zip"
 
       - uses: actions/upload-artifact@v4
