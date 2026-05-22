@@ -1,12 +1,13 @@
 # zipvoice-rs
 
-Generate Hebrew speech locally in Rust with ZipVoice GGUF models.
+Generate English and Hebrew speech locally in Rust with ZipVoice GGUF models.
 
 Rust GGML/GGUF inference for ZipVoice and Vocos.
 
 ## Features
 
-- 🗣️ Hebrew text-to-speech generation with ZipVoice.
+- 🗣️ English and Hebrew text-to-speech generation with ZipVoice.
+- 🧬 English phonemization with eSpeak NG.
 - 🧬 Optional Hebrew G2P with Renikud, plus eSpeak NG for embedded English words.
 - 🔊 Vocos mel encoder/decoder in GGML for 24 kHz waveform output.
 - ⚡ GGML backend inference with quiet logs by default.
@@ -16,7 +17,8 @@ Rust GGML/GGUF inference for ZipVoice and Vocos.
 Original models:
 
 - [ZipVoice](https://github.com/k2-fsa/ZipVoice)
-- [zipvoice-heb](https://huggingface.co/thewh1teagle/zipvoice-heb)
+- [ZipVoice English](https://huggingface.co/k2-fsa/ZipVoice)
+- [ZipVoice Hebrew](https://huggingface.co/thewh1teagle/zipvoice-heb)
 - [Vocos mel 24 kHz](https://huggingface.co/charactr/vocos-mel-24khz)
 - [Renikud](https://huggingface.co/thewh1teagle/renikud)
 
@@ -25,8 +27,10 @@ See [BUILDING.md](BUILDING.md) for model downloads and GGUF conversion.
 Quick model setup:
 
 ```bash
-mkdir -p assets models/renikud models/zipvoice-heb models/vocos
+mkdir -p assets models/renikud models/zipvoice-en models/zipvoice-heb models/vocos
 wget https://github.com/thewh1teagle/phonikud-chatterbox/releases/download/asset-files-v1/female1.wav -O assets/female1.wav
+wget https://github.com/thewh1teagle/zipvoice-rs/releases/download/models-v0.1.0/whisper.wav -O assets/whisper.wav
+wget https://github.com/thewh1teagle/zipvoice-rs/releases/download/models-v0.1.0/zipvoice-en-q8_0.gguf -O models/zipvoice-en/zipvoice-en-q8_0.gguf
 wget https://github.com/thewh1teagle/zipvoice-rs/releases/download/models-v0.1.0/zipvoice-heb-q8_0.gguf -O models/zipvoice-heb/zipvoice-heb-q8_0.gguf
 wget https://github.com/thewh1teagle/zipvoice-rs/releases/download/models-v0.1.0/vocos-mel-24khz-q8_0.gguf -O models/vocos/vocos-mel-24khz-q8_0.gguf
 wget https://huggingface.co/thewh1teagle/renikud/resolve/main/model.onnx -O models/renikud/model.onnx
@@ -62,7 +66,12 @@ Generated WAV files are written to `output/`.
 
 ## Model Sizes
 
-The q8 Hebrew example uses about 160 MB of model files:
+The q8 English example uses about 140 MB of model files:
+
+- `zipvoice-en-q8_0.gguf`: 126 MB
+- `vocos-mel-24khz-q8_0.gguf`: 14 MB
+
+The q8 Hebrew text example uses about 160 MB of model files:
 
 - `zipvoice-heb-q8_0.gguf`: 126 MB
 - `vocos-mel-24khz-q8_0.gguf`: 14 MB

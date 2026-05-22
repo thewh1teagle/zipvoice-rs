@@ -1,8 +1,8 @@
 /*
 Prepare assets and models:
-    mkdir -p assets models/zipvoice-heb models/vocos
-    wget https://github.com/thewh1teagle/phonikud-chatterbox/releases/download/asset-files-v1/female1.wav -O assets/female1.wav
-    wget https://github.com/thewh1teagle/zipvoice-rs/releases/download/models-v0.1.0/zipvoice-heb-q8_0.gguf -O models/zipvoice-heb/zipvoice-heb-q8_0.gguf
+    mkdir -p assets models/zipvoice-en models/vocos
+    wget https://github.com/thewh1teagle/zipvoice-rs/releases/download/models-v0.1.0/whisper.wav -O assets/whisper.wav
+    wget https://github.com/thewh1teagle/zipvoice-rs/releases/download/models-v0.1.0/zipvoice-en-q8_0.gguf -O models/zipvoice-en/zipvoice-en-q8_0.gguf
     wget https://github.com/thewh1teagle/zipvoice-rs/releases/download/models-v0.1.0/vocos-mel-24khz-q8_0.gguf -O models/vocos/vocos-mel-24khz-q8_0.gguf
 
 Run:
@@ -13,23 +13,25 @@ use std::path::Path;
 
 use zipvoice_rs::{ZipVoice, write_wav_mono_16bit};
 
-const ZIPVOICE_MODEL: &str = "models/zipvoice-heb/zipvoice-heb-q8_0.gguf";
+const ZIPVOICE_MODEL: &str = "models/zipvoice-en/zipvoice-en-q8_0.gguf";
 const VOCOS_MODEL: &str = "models/vocos/vocos-mel-24khz-q8_0.gguf";
-const REF_WAV: &str = "assets/female1.wav";
+const REF_WAV: &str = "assets/whisper.wav";
 const OUTPUT: &str = "output/basic_espeak_generated.wav";
 
-const REF_PHONEMES: &str = "halˈaχti lamakˈolet liknˈot lˈeχem veχalˈav, ubadˈeʁeχ paɡˈaʃti χavˈeʁ jaʃˈan ʃelˈo ʁaʔˈiti haʁbˈe zmˈan.";
+const REF_TEXT: &str = "Real change begins when your hope becomes stronger than your excuses.";
 const TARGET_TEXT: &str = "The morning train arrived beside the old stone bridge.";
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let ref_phonemes = text_to_ipa("en-us", REF_TEXT)?;
     let target_phonemes = text_to_ipa("en", TARGET_TEXT)?;
     let zipvoice = ZipVoice::load_with_vocos(ZIPVOICE_MODEL, VOCOS_MODEL)?;
     let (samples, sample_rate) =
-        zipvoice.create(REF_WAV, REF_PHONEMES, target_phonemes.as_str())?;
+        zipvoice.create(REF_WAV, ref_phonemes.as_str(), target_phonemes.as_str())?;
 
     std::fs::create_dir_all("output")?;
     write_wav_mono_16bit(OUTPUT, &samples, sample_rate)?;
 
+    println!("ref_phonemes={ref_phonemes}");
     println!("target_phonemes={target_phonemes}");
     println!("wrote={OUTPUT}");
     println!("duration={:.3}s", samples.len() as f32 / sample_rate as f32);
