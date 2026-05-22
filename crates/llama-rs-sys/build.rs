@@ -73,8 +73,6 @@ fn fetch_llama_cpp(out_dir: &Path, llama_dir: &Path) {
 }
 
 fn build_ggml(source_dir: &Path) -> PathBuf {
-    patch_ggml_cmake_for_platform(source_dir);
-
     let wrapper_dir = cmake_wrapper_dir(source_dir);
     let mut config = cmake::Config::new(&wrapper_dir);
     if cfg!(target_os = "windows") {
@@ -97,35 +95,6 @@ fn build_ggml(source_dir: &Path) -> PathBuf {
         .define("GGML_METAL_EMBED_LIBRARY", metal_enabled())
         .define("GGML_VULKAN", vulkan_enabled());
     config.build()
-}
-
-fn patch_ggml_cmake_for_platform(source_dir: &Path) {
-    if cfg!(target_os = "windows") && vulkan_enabled() == "ON" {
-        patch_windows_vulkan_shader_generator(source_dir);
-    }
-}
-
-fn patch_windows_vulkan_shader_generator(source_dir: &Path) {
-    let cmake_path = source_dir.join("src/ggml-vulkan/CMakeLists.txt");
-    let cmake =
-        std::fs::read_to_string(&cmake_path).expect("failed to read ggml-vulkan CMakeLists.txt");
-    let needle = "        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/$<CONFIG>\n\
-                   -DCMAKE_INSTALL_BINDIR=.\n\
-                   -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}\n";
-    let replacement = "        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/$<CONFIG>\n\
-                   -DCMAKE_INSTALL_BINDIR=.\n\
-                   -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}\n\
-                   -DCMAKE_TRY_COMPILE_CONFIGURATION=Release\n\
-                   -DCMAKE_MSVC_DEBUG_INFORMATION_FORMAT=Embedded\n";
-    if cmake.contains("-DCMAKE_TRY_COMPILE_CONFIGURATION=Release") {
-        return;
-    }
-    let patched = cmake.replace(needle, replacement);
-    assert_ne!(
-        patched, cmake,
-        "failed to patch ggml-vulkan shader generator CMake arguments"
-    );
-    std::fs::write(&cmake_path, patched).expect("failed to patch ggml-vulkan CMakeLists.txt");
 }
 
 fn cmake_wrapper_dir(source_dir: &Path) -> PathBuf {
