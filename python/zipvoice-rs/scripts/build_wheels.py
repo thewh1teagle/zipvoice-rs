@@ -98,7 +98,7 @@ def main() -> None:
             download_asset(release_assets, target.asset, asset_path)
             with tempfile.TemporaryDirectory(prefix=f"zipvoice-{target.name}-") as td:
                 native_lib = extract_native_lib(asset_path, target.lib_name, Path(td))
-                reset_native_dir()
+                prepare_native_dir()
                 shutil.copy2(native_lib, NATIVE / target.lib_name)
                 pure_wheel = build_pure_wheel(Path(td) / "wheel")
                 platform_wheel = out_dir / f"{dist_name}-{version}-{target.wheel_tag}.whl"
@@ -107,7 +107,7 @@ def main() -> None:
                 built.append(platform_wheel)
                 print(f"built {platform_wheel}")
     finally:
-        reset_native_dir()
+        cleanup_native_dir()
         if not args.keep_downloads:
             shutil.rmtree(downloads, ignore_errors=True)
 
@@ -156,10 +156,13 @@ def extract_native_lib(asset: Path, lib_name: str, out_dir: Path) -> Path:
     return matches[0]
 
 
-def reset_native_dir() -> None:
+def prepare_native_dir() -> None:
     shutil.rmtree(NATIVE, ignore_errors=True)
     NATIVE.mkdir(parents=True, exist_ok=True)
-    (NATIVE / ".gitkeep").write_text("")
+
+
+def cleanup_native_dir() -> None:
+    shutil.rmtree(NATIVE, ignore_errors=True)
 
 
 def build_pure_wheel(out_dir: Path) -> Path:
@@ -184,7 +187,11 @@ def rewrite_wheel_tag(source: Path, dest: Path, tag: str) -> None:
         dist_info = next(wheel_dir.glob("*.dist-info"))
         wheel_file = dist_info / "WHEEL"
         lines = wheel_file.read_text().splitlines()
-        lines = [line for line in lines if not line.startswith("Tag: ")]
+        lines = [
+            "Root-Is-Purelib: false" if line.startswith("Root-Is-Purelib: ") else line
+            for line in lines
+            if not line.startswith("Tag: ")
+        ]
         lines.append(f"Tag: {tag}")
         wheel_file.write_text("\n".join(lines) + "\n")
 
@@ -217,6 +224,8 @@ def assert_wheel_contains(wheel: Path, lib_name: str, tag: str) -> None:
         raise RuntimeError(f"{wheel} does not contain {native_path}")
     if f"Tag: {tag}" not in wheel_metadata:
         raise RuntimeError(f"{wheel} does not contain wheel tag {tag}")
+    if "Root-Is-Purelib: false" not in wheel_metadata:
+        raise RuntimeError(f"{wheel} is not marked as a platform wheel")
 
 
 if __name__ == "__main__":
