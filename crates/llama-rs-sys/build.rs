@@ -209,6 +209,7 @@ fn link_platform_libs() {
             );
         }
         println!("cargo:rustc-link-lib=vulkan-1");
+        println!("cargo:rustc-link-lib=advapi32");
     }
 }
 
