@@ -1,0 +1,13 @@
+language = "C"
+include_guard = "ZIPVOICE_H"
+pragma_once = true
+style = "type"
+usize_is_size_t = true
+documentation = true
+
+header = """
+/* AUTO-GENERATED WITH CBINDGEN. DO NOT EDIT BY HAND.
+   REGENERATE WITH:
+   cbindgen crates/zipvoice-capi --crate zipvoice-capi --output crates/zipvoice-capi/include/zipvoice.h
+*/
+"""

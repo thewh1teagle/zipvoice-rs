@@ -87,6 +87,7 @@ fn build_ggml(source_dir: &Path) -> PathBuf {
         .define("GGML_BACKEND_DL", "OFF")
         .define("GGML_NATIVE", "OFF")
         .define("GGML_CPU", "ON")
+        .define("GGML_ACCELERATE", accelerate_enabled())
         .define("GGML_METAL", metal_enabled())
         .define("GGML_METAL_EMBED_LIBRARY", metal_enabled())
         .define("GGML_VULKAN", vulkan_enabled());
@@ -238,6 +239,14 @@ fn vulkan_enabled() -> &'static str {
     if cfg!(feature = "vulkan")
         || ((cfg!(target_os = "linux") || cfg!(target_os = "windows")) && !cfg!(feature = "metal"))
     {
+        "ON"
+    } else {
+        "OFF"
+    }
+}
+
+fn accelerate_enabled() -> &'static str {
+    if cfg!(target_os = "macos") {
         "ON"
     } else {
         "OFF"

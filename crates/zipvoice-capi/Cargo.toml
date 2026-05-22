@@ -1,0 +1,16 @@
+[package]
+name = "zipvoice-capi"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "zipvoice_capi"
+crate-type = ["cdylib", "staticlib"]
+
+[features]
+default = []
+metal = ["zipvoice-rs/metal"]
+vulkan = ["zipvoice-rs/vulkan"]
+
+[dependencies]
+zipvoice-rs = { path = "../.." }

@@ -3,6 +3,10 @@ name = "zipvoice-rs"
 version = "0.1.0"
 edition = "2024"
 
+[workspace]
+members = [".", "crates/llama-rs-sys", "crates/zipvoice-capi"]
+resolver = "2"
+
 [dependencies]
 byteorder = "1.5.0"
 espeak-ng = { version = "0.1.2", optional = true, default-features = false }
@@ -20,6 +24,8 @@ thiserror = "2.0.18"
 
 [features]
 default = []
+metal = ["llama-rs-sys/metal"]
+vulkan = ["llama-rs-sys/vulkan"]
 phonemize-espeak = ["dep:espeak-ng", "espeak-ng/bundled-data-en"]
 phonemize-hebrew = [
     "dep:espeak-ng",
