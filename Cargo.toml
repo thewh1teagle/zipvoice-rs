@@ -1,0 +1,37 @@
+[package]
+name = "zipvoice-rs"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+byteorder = "1.5.0"
+espeak-ng = { version = "0.1.2", optional = true, default-features = false }
+half = "2.7.1"
+hound = "3.5.1"
+llama-rs-sys = { path = "crates/llama-rs-sys" }
+num-complex = "0.4.6"
+regex = { version = "1.12.2", optional = true }
+renikud-rs = { git = "https://github.com/thewh1teagle/renikud", branch = "main", optional = true }
+rubato = "0.16.2"
+rustfft = "6.4.1"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.145"
+thiserror = "2.0.18"
+
+[features]
+default = []
+phonemize-espeak = ["dep:espeak-ng", "espeak-ng/bundled-data-en"]
+phonemize-hebrew = [
+    "dep:espeak-ng",
+    "dep:regex",
+    "dep:renikud-rs",
+    "espeak-ng/bundled-data-en",
+]
+
+[[example]]
+name = "basic_espeak"
+required-features = ["phonemize-espeak"]
+
+[[example]]
+name = "basic_hebrew_text"
+required-features = ["phonemize-hebrew"]

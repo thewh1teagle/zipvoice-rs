@@ -1,0 +1,5 @@
+/target
+plans/
+output/
+models/
+*.wav
