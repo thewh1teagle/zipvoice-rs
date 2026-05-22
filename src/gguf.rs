@@ -60,7 +60,10 @@ pub enum GgufError {
         size: usize,
     },
     #[error("unsupported tensor type for {name}: {tensor_type}")]
-    UnsupportedTensorType { name: String, tensor_type: u32 },
+    UnsupportedTensorType {
+        name: String,
+        tensor_type: ffi::ggml_type,
+    },
     #[error("ggml error: {0}")]
     Ggml(String),
 }
@@ -71,7 +74,7 @@ pub type Result<T> = std::result::Result<T, GgufError>;
 pub struct TensorInfo {
     pub index: i64,
     pub name: String,
-    pub tensor_type: u32,
+    pub tensor_type: ffi::ggml_type,
     pub offset: usize,
     pub size: usize,
 }
@@ -219,7 +222,7 @@ impl GgufModel {
     fn dequantize_tensor_to_f32(
         &self,
         name: &str,
-        tensor_type: u32,
+        tensor_type: ffi::ggml_type,
         bytes: &[u8],
     ) -> Result<Vec<f32>> {
         let shape = self
@@ -576,7 +579,7 @@ impl Drop for GgmlWeights {
 
 struct TensorSpec {
     name: String,
-    tensor_type: u32,
+    tensor_type: ffi::ggml_type,
     shape: Vec<usize>,
     index: i64,
 }
