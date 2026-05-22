@@ -1,4 +1,4 @@
-# zipvoice
+# zipvoice-rs
 
 Python `ctypes` bindings for the local `zipvoice-capi` shared library.
 

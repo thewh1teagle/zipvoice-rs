@@ -1,5 +1,5 @@
 [project]
-name = "zipvoice"
+name = "zipvoice-rs"
 version = "0.1.0"
 description = "Python ctypes bindings for zipvoice-rs"
 readme = "README.md"

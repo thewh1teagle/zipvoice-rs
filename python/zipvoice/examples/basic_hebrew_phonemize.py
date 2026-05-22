@@ -29,7 +29,7 @@ from phonemizer import phonemize as phonemize_en
 from phonemizer.backend.espeak.wrapper import EspeakWrapper
 
 from renikud_onnx import G2P
-from zipvoice import ZipVoice
+from zipvoice_rs import ZipVoice
 
 
 ROOT = Path(__file__).resolve().parents[3]

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from zipvoice import ZipVoice
+from zipvoice_rs import ZipVoice
 
 
 ROOT = Path(__file__).resolve().parents[3]
