@@ -15,7 +15,7 @@ Prepare assets and models:
     wget https://github.com/thewh1teagle/zipvoice-rs/releases/download/models-v0.1.0/zipvoice-heb-q8_0.gguf -O models/zipvoice-heb/zipvoice-heb-q8_0.gguf
     wget https://github.com/thewh1teagle/zipvoice-rs/releases/download/models-v0.1.0/vocos-mel-24khz-q8_0.gguf -O models/vocos/vocos-mel-24khz-q8_0.gguf
 
-Run from python/zipvoice:
+Run from python/zipvoice-rs:
     uv run --with-editable . examples/basic_hebrew_phonemize.py
 """
 
