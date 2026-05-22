@@ -1,20 +1,20 @@
 from pathlib import Path
 
 from zipvoice import ZipVoice
-from zipvoice.models import asset_path, ensure_asset, ensure_model
 
 
 ROOT = Path(__file__).resolve().parents[3]
+ZIPVOICE_MODEL = ROOT / "models/zipvoice-heb/zipvoice-heb-q8_0.gguf"
+VOCOS_MODEL = ROOT / "models/vocos/vocos-mel-24khz-q8_0.gguf"
+REF_WAV = ROOT / "assets/female1.wav"
 OUTPUT = ROOT / "output/python-basic-hebrew.wav"
 PHONEMES = "halˈaχti lamakˈolet liknˈot lˈeχem veχalˈav, ubadˈeʁeχ paɡˈaʃti χavˈeʁ jaʃˈan ʃelˈo ʁaʔˈiti haʁbˈe zmˈan."
 
 
 def main() -> None:
-    zipvoice, vocos = ensure_model("hebrew", ROOT)
-    ensure_asset("female1", ROOT)
-    with ZipVoice(zipvoice, vocos) as model:
+    with ZipVoice(ZIPVOICE_MODEL, VOCOS_MODEL) as model:
         output = model.generate_wav(
-            asset_path("female1", ROOT),
+            REF_WAV,
             PHONEMES,
             PHONEMES,
             OUTPUT,

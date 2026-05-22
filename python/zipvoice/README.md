@@ -22,4 +22,5 @@ Run an example from this directory:
 ```bash
 uv run python examples/basic_english.py
 uv run python examples/basic_hebrew.py
+uv run --with-editable . examples/basic_hebrew_phonemize.py
 ```
