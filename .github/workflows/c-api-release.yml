@@ -60,15 +60,21 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y glslang-tools glslc libvulkan-dev ninja-build
+          sudo apt-get install -y glslang-tools glslc libvulkan-dev ninja-build spirv-headers spirv-tools
 
       - name: Install Windows Vulkan SDK
         if: runner.os == 'Windows'
-        uses: humbletim/setup-vulkan-sdk@v1.2.1
-        with:
-          vulkan-query-version: latest
-          vulkan-components: Vulkan-Headers, Vulkan-Loader, SPIRV-Headers, SPIRV-Tools, Glslang, shaderc
-          vulkan-use-cache: true
+        shell: pwsh
+        run: |
+          choco install vulkan-sdk -y --no-progress
+          $sdk = Get-ChildItem "C:\VulkanSDK" -Directory | Sort-Object Name -Descending | Select-Object -First 1
+          if (-not $sdk) {
+            throw "Vulkan SDK directory not found"
+          }
+          "VULKAN_SDK=$($sdk.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "$($sdk.FullName)\Bin" | Out-File -FilePath $env:GITHUB_PATH -Append
+          "$($sdk.FullName)\Lib" | Out-File -FilePath $env:GITHUB_PATH -Append
+          & "$($sdk.FullName)\Bin\glslc.exe" --version
 
       - name: Build C API
         run: cargo build --release -p zipvoice-capi --target ${{ matrix.target }} --no-default-features --features ${{ matrix.features }}
