@@ -1,10 +1,10 @@
 use std::cell::RefCell;
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_int};
-use std::panic::{catch_unwind, AssertUnwindSafe};
+use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::ptr;
 
-use zipvoice_rs::{write_wav_mono_16bit, CreateOptions, ZipVoice};
+use zipvoice_rs::{CreateOptions, ZipVoice, write_wav_mono_16bit};
 
 thread_local! {
     static LAST_ERROR: RefCell<Option<CString>> = const { RefCell::new(None) };

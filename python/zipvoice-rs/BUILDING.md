@@ -76,7 +76,7 @@ $env:ZIPVOICE_CAPI_LIB = "C:\path\to\zipvoice_capi.dll"
 After the C API release exists, build all platform wheels from this directory:
 
 ```bash
-uv run scripts/build_wheels.py --c-api-tag c-api-v0.1.0
+uv run scripts/build_wheels.py --c-api-tag c-api-v0.1.1
 ```
 
 The script downloads the C API release assets, bundles the matching native

@@ -236,12 +236,11 @@ impl GgufModel {
                 tensor_type,
             });
         }
-        let to_float = unsafe { (*traits).to_float }.ok_or_else(|| {
-            GgufError::UnsupportedTensorType {
+        let to_float =
+            unsafe { (*traits).to_float }.ok_or_else(|| GgufError::UnsupportedTensorType {
                 name: name.into(),
                 tensor_type,
-            }
-        })?;
+            })?;
         let expected = unsafe { ffi::ggml_row_size(tensor_type, elements as i64) };
         if bytes.len() != expected {
             return Err(GgufError::InvalidTensorRange {
@@ -426,8 +425,25 @@ impl GgmlWeights {
 
     fn new(n_tensors: usize) -> Result<Self> {
         unsafe {
+            if std::env::var_os("GGML_VK_PREFER_HOST_MEMORY").is_none()
+                && std::env::var_os("GGML_VK_DISABLE_PREFER_HOST_MEMORY").is_none()
+            {
+                std::env::set_var("GGML_VK_PREFER_HOST_MEMORY", "1");
+            }
+            if std::env::var_os("GGML_VK_DISABLE_GRAPH_OPTIMIZE").is_none()
+                && std::env::var_os("GGML_VK_ENABLE_GRAPH_OPTIMIZE").is_none()
+            {
+                std::env::set_var("GGML_VK_DISABLE_GRAPH_OPTIMIZE", "1");
+            }
             ffi::ggml_backend_load_all();
-            let backend = ffi::ggml_backend_init_best();
+            let backend = if std::env::var_os("ZIPVOICE_FORCE_CPU").is_some() {
+                ffi::ggml_backend_init_by_type(
+                    ffi::ggml_backend_dev_type_GGML_BACKEND_DEVICE_TYPE_CPU,
+                    ptr::null(),
+                )
+            } else {
+                ffi::ggml_backend_init_best()
+            };
             if backend.is_null() {
                 return Err(GgufError::Ggml("failed to initialize GGML backend".into()));
             }

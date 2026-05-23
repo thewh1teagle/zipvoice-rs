@@ -476,9 +476,20 @@ struct GuidedVelocityGraph<'a> {
     model: &'a ZipVoiceModel,
     ctx: *mut ffi::ggml_context,
     graph: *mut ffi::ggml_cgraph,
-    x_t: *mut ffi::ggml_tensor,
-    time_t: *mut ffi::ggml_tensor,
+    cond_x_t: *mut ffi::ggml_tensor,
+    uncond_x_t: *mut ffi::ggml_tensor,
+    text_t: *mut ffi::ggml_tensor,
+    speech_t: *mut ffi::ggml_tensor,
+    zero_text_t: *mut ffi::ggml_tensor,
+    zero_speech_t: Option<*mut ffi::ggml_tensor>,
+    cond_time_t: *mut ffi::ggml_tensor,
+    uncond_time_t: *mut ffi::ggml_tensor,
     out: *mut ffi::ggml_tensor,
+    text_condition: &'a [f32],
+    speech_condition: &'a [f32],
+    zeros: Vec<f32>,
+    scalars: Vec<(*mut ffi::ggml_tensor, f32)>,
+    aux_inputs: Vec<(*mut ffi::ggml_tensor, Vec<f32>)>,
     frames: usize,
 }
 
@@ -531,7 +542,11 @@ impl<'a> GuidedVelocityGraph<'a> {
     ) -> Result<Self> {
         unsafe {
             let feat_dim = model.feat_dim();
-            let x_t = input_tensor(ctx, feat_dim, frames);
+            // Keep branch inputs separate. Reusing the same input tensor for
+            // cond/uncond works for one-shot graphs, but corrupts repeated
+            // scheduler execution on the Vulkan backend.
+            let cond_x_t = input_tensor(ctx, feat_dim, frames);
+            let uncond_x_t = input_tensor(ctx, feat_dim, frames);
             let text_t = input_tensor(ctx, feat_dim, frames);
             let speech_t = input_tensor(ctx, feat_dim, frames);
             let zero_text_t = input_tensor(ctx, feat_dim, frames);
@@ -540,19 +555,28 @@ impl<'a> GuidedVelocityGraph<'a> {
             } else {
                 None
             };
-            let time_t = ffi::ggml_new_tensor_2d(
+            let cond_time_t = ffi::ggml_new_tensor_2d(
                 ctx,
                 ffi::ggml_type_GGML_TYPE_F32,
                 model.config().model.time_embed_dim as i64,
                 1,
             );
-            ffi::ggml_set_input(time_t);
-            if x_t.is_null()
+            let uncond_time_t = ffi::ggml_new_tensor_2d(
+                ctx,
+                ffi::ggml_type_GGML_TYPE_F32,
+                model.config().model.time_embed_dim as i64,
+                1,
+            );
+            ffi::ggml_set_input(cond_time_t);
+            ffi::ggml_set_input(uncond_time_t);
+            if cond_x_t.is_null()
+                || uncond_x_t.is_null()
                 || text_t.is_null()
                 || speech_t.is_null()
                 || zero_text_t.is_null()
                 || zero_speech_t.is_some_and(|tensor| tensor.is_null())
-                || time_t.is_null()
+                || cond_time_t.is_null()
+                || uncond_time_t.is_null()
             {
                 return Err(ZipVoiceError::Ggml(
                     "failed to create reusable guided flow inputs".into(),
@@ -564,10 +588,10 @@ impl<'a> GuidedVelocityGraph<'a> {
             let cond = velocity_output_tensor(
                 ctx,
                 model,
-                x_t,
+                cond_x_t,
                 text_t,
                 speech_t,
-                time_t,
+                cond_time_t,
                 frames,
                 &mut scalars,
                 &mut aux_inputs,
@@ -576,10 +600,10 @@ impl<'a> GuidedVelocityGraph<'a> {
             let uncond = velocity_output_tensor(
                 ctx,
                 model,
-                x_t,
+                uncond_x_t,
                 zero_text_t,
                 uncond_speech_t,
-                time_t,
+                uncond_time_t,
                 frames,
                 &mut scalars,
                 &mut aux_inputs,
@@ -598,37 +622,24 @@ impl<'a> GuidedVelocityGraph<'a> {
             ffi::ggml_build_forward_expand(graph, out);
             model.alloc_graph(graph)?;
 
-            let zeros = vec![0.0_f32; frames * feat_dim];
-            set_tensor(text_t, text_condition);
-            set_tensor(speech_t, speech_condition);
-            set_tensor(zero_text_t, &zeros);
-            if let Some(zero_speech_t) = zero_speech_t {
-                set_tensor(zero_speech_t, &zeros);
-            }
-            for &(tensor, value) in &scalars {
-                ffi::ggml_backend_tensor_set(
-                    tensor,
-                    (&value as *const f32).cast(),
-                    0,
-                    std::mem::size_of::<f32>(),
-                );
-            }
-            for (tensor, data) in &aux_inputs {
-                ffi::ggml_backend_tensor_set(
-                    *tensor,
-                    data.as_ptr().cast(),
-                    0,
-                    std::mem::size_of_val(data.as_slice()),
-                );
-            }
-
             Ok(Self {
                 model,
                 ctx,
                 graph,
-                x_t,
-                time_t,
+                cond_x_t,
+                uncond_x_t,
+                text_t,
+                speech_t,
+                zero_text_t,
+                zero_speech_t,
+                cond_time_t,
+                uncond_time_t,
                 out,
+                text_condition,
+                speech_condition,
+                zeros: vec![0.0_f32; frames * feat_dim],
+                scalars,
+                aux_inputs,
                 frames,
             })
         }
@@ -638,8 +649,32 @@ impl<'a> GuidedVelocityGraph<'a> {
         let time_embedding =
             timestep_embedding(t, self.model.config().model.time_embed_dim as usize);
         unsafe {
-            set_tensor(self.x_t, x);
-            set_tensor(self.time_t, &time_embedding);
+            set_tensor(self.cond_x_t, x);
+            set_tensor(self.uncond_x_t, x);
+            set_tensor(self.text_t, self.text_condition);
+            set_tensor(self.speech_t, self.speech_condition);
+            set_tensor(self.zero_text_t, &self.zeros);
+            if let Some(zero_speech_t) = self.zero_speech_t {
+                set_tensor(zero_speech_t, &self.zeros);
+            }
+            set_tensor(self.cond_time_t, &time_embedding);
+            set_tensor(self.uncond_time_t, &time_embedding);
+            for &(tensor, value) in &self.scalars {
+                ffi::ggml_backend_tensor_set(
+                    tensor,
+                    (&value as *const f32).cast(),
+                    0,
+                    std::mem::size_of::<f32>(),
+                );
+            }
+            for (tensor, data) in &self.aux_inputs {
+                ffi::ggml_backend_tensor_set(
+                    *tensor,
+                    data.as_ptr().cast(),
+                    0,
+                    std::mem::size_of_val(data.as_slice()),
+                );
+            }
             if let Err(err) = self.model.compute_graph(self.graph) {
                 return Err(err);
             }

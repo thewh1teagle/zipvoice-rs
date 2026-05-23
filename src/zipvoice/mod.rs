@@ -252,9 +252,14 @@ impl ZipVoice {
         options: CreateOptions,
     ) -> Result<(Vec<f32>, u32)> {
         let _verbose_guard = GgmlVerboseGuard::new(options.verbose);
+        let profile = options.verbose || std::env::var_os("ZIPVOICE_PROFILE").is_some();
+        let total_start = std::time::Instant::now();
         let prompt_samples = Vocos::load_wav_mono_24khz(ref_wav)?;
+        let loaded_at = std::time::Instant::now();
         let prompt_audio = prepare_prompt_audio(&prompt_samples);
+        let prepared_at = std::time::Instant::now();
         let prompt_features = vocos.encode_samples_24khz(&prompt_audio.samples)?;
+        let encoded_at = std::time::Instant::now();
         let prompt_frames = prompt_features.len() / self.model.feat_dim();
 
         let text_condition = self.text_condition_preview(
@@ -263,6 +268,7 @@ impl ZipVoice {
             prompt_frames,
             options.speed,
         )?;
+        let text_at = std::time::Instant::now();
         let plan = self.plan(ref_phonemes, target_phonemes, prompt_frames, options.speed);
 
         let scaled_prompt = prompt_features
@@ -281,16 +287,53 @@ impl ZipVoice {
             options.guidance_scale,
             options.seed,
         )?;
+        let flow_at = std::time::Instant::now();
         let generated_mel = sampled_features[prompt_features.len()..]
             .iter()
             .map(|value| value / FEAT_SCALE)
             .collect::<Vec<_>>();
         let wav = vocos.decode_mel_samples_24khz(&generated_mel)?;
+        let vocos_at = std::time::Instant::now();
+        let wav = postprocess_generated_audio(wav, prompt_audio.original_rms);
+        let done_at = std::time::Instant::now();
 
-        Ok((
-            postprocess_generated_audio(wav, prompt_audio.original_rms),
-            self.model.config().feature.sampling_rate,
-        ))
+        if profile {
+            eprintln!("backend={}", self.model.backend_name());
+            eprintln!(
+                "load_prompt={:.3}s",
+                loaded_at.duration_since(total_start).as_secs_f32()
+            );
+            eprintln!(
+                "prepare_prompt={:.3}s",
+                prepared_at.duration_since(loaded_at).as_secs_f32()
+            );
+            eprintln!(
+                "encode_prompt={:.3}s",
+                encoded_at.duration_since(prepared_at).as_secs_f32()
+            );
+            eprintln!(
+                "text_condition={:.3}s",
+                text_at.duration_since(encoded_at).as_secs_f32()
+            );
+            eprintln!(
+                "flow_sample={:.3}s",
+                flow_at.duration_since(text_at).as_secs_f32()
+            );
+            eprintln!(
+                "vocos_decode={:.3}s",
+                vocos_at.duration_since(flow_at).as_secs_f32()
+            );
+            eprintln!(
+                "postprocess={:.3}s",
+                done_at.duration_since(vocos_at).as_secs_f32()
+            );
+            eprintln!(
+                "total_create={:.3}s",
+                done_at.duration_since(total_start).as_secs_f32()
+            );
+        }
+
+        Ok((wav, self.model.config().feature.sampling_rate))
     }
 
     pub fn plan(

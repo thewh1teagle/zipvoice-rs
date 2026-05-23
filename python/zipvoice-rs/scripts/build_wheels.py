@@ -9,7 +9,7 @@ Build platform wheels that bundle zipvoice-capi release libraries.
 
 Usage:
     uv run scripts/build_wheels.py
-    uv run scripts/build_wheels.py --c-api-tag c-api-v0.1.0 --out dist
+    uv run scripts/build_wheels.py --c-api-tag c-api-v0.1.1 --out dist
 """
 
 from __future__ import annotations
@@ -77,7 +77,7 @@ TARGETS = [
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo", default=f"{OWNER}/{REPO}")
-    parser.add_argument("--c-api-tag", default="c-api-v0.1.0")
+    parser.add_argument("--c-api-tag", default="c-api-v0.1.1")
     parser.add_argument("--out", type=Path, default=ROOT / "dist")
     parser.add_argument("--keep-downloads", action="store_true")
     args = parser.parse_args()

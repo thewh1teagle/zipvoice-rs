@@ -6,7 +6,7 @@ on:
       tag:
         description: Release tag to create or update
         required: true
-        default: c-api-v0.1.0
+        default: c-api-v0.1.1
   push:
     tags:
       - "c-api-v*"
