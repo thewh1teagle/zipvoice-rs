@@ -5,3 +5,4 @@ models/
 *.wav
 python/**/.venv/
 python/**/__pycache__/
+python/zipvoice-rs/dist/
